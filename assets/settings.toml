@@ -3,3 +3,5 @@ speed = 15.0
 brain_position = [0, -5.0, 0]
 brain_scale = 0.5
 shadow_bias = 0.1
+ambient_light = [0.1, 0.02, 0.15, 1.0]
+ambient_brightness = 1000

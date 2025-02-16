@@ -98,6 +98,16 @@ fn build(
             Transform::from_xyz(-4.0, 5.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
         ));
 
+        let ambient = settings.ambient_light;
+        let ambient = Color::srgba(ambient[0], ambient[1], ambient[2], ambient[3]);
+
+        commands.insert_resource(AmbientLight {
+            color: ambient,
+            brightness: settings.ambient_brightness,
+        });
+
+        commands.insert_resource(ClearColor ( ambient ));
+
         state.set(AppState::Running)
     }
     
@@ -157,7 +167,9 @@ struct Settings {
     speed: f32,
     brain_position: [f32; 3],
     brain_scale: f32,
-    shadow_bias: f32
+    shadow_bias: f32,
+    ambient_light: [f32; 4],
+    ambient_brightness: f32
 }
 
 impl MaterialExtension for SphericalHarmonicsMaterial {
