@@ -5,3 +5,20 @@ edition = "2021"
 
 [dependencies]
 bevy = { version = "0.15.2", features = ["file_watcher"] }
+bevy_common_assets = { version = "0.12.0", features = ["toml"] }
+serde = { version = "1" }
+
+# Enable max optimizations for dependencies, but not for our code:
+[profile.dev.package."*"]
+opt-level = 3
+
+# Enable only a small amount of optimization in debug mode
+# [profile.dev]
+# opt-level = 1
+
+[profile.release]
+strip = true
+lto = true
+opt-level = "z"
+codegen-units = 1
+panic = 'abort'
