@@ -1,0 +1,5 @@
+subdivisions = 20
+speed = 15.0
+brain_position = [0, -5.0, 0]
+brain_scale = 0.5
+shadow_bias = 0.1
