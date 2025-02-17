@@ -15,10 +15,14 @@ use bevy::{
     },
     prelude::ops::{sin, cos},
     math::FloatOrd,
+    window::WindowMode,
 };
+//use rand::prelude::*;
 use bevy_common_assets::toml::TomlAssetPlugin;
 use serde::{Deserialize};
 use std::cmp::max;
+use std::time::Duration;
+use kira::tween::Easing;
 
 const HARMONICS_SHADER_PATH: &str = "shaders/sphericalharmonics.wgsl";
 const NUM_COEFFICIENTS: usize = 9;
@@ -26,7 +30,13 @@ const NUM_COEFFICIENTS: usize = 9;
 fn main() {
     App::new()
         .add_plugins((
-            DefaultPlugins,
+            DefaultPlugins.set(WindowPlugin {
+                primary_window: Some(Window {
+                    mode: WindowMode::Fullscreen(MonitorSelection::Primary),
+                    ..default()
+                }),
+                ..default()
+            }),
             AudioPlugin,
             MaterialPlugin::<ExtendedMaterial<StandardMaterial, SphericalHarmonicsMaterial>>::default(),
             TomlAssetPlugin::<Oscillators>::new(&["sh.toml"]),
@@ -34,7 +44,7 @@ fn main() {
             ))
         .init_state::<AppState>()
         .add_systems(Startup, setup)
-        .add_systems(Update, (pulse, animate_camera_and_thought, build.run_if(in_state(AppState::Building))))
+        .add_systems(Update, (pulse, animate_camera_and_thought, quit_after_time, build.run_if(in_state(AppState::Building))))
         .run();
 }
 
@@ -190,7 +200,7 @@ fn pulse(
 
 fn animate_camera_and_thought(
     mut camera_query: Query<(&mut Transform, &mut DepthOfField), (With<Camera3d>, Without<Mesh3d>)>,
-    mut thought_query: Query<&mut Transform, With<Mesh3d>>,
+    mut thought_query: Query<&mut Transform, (With<Mesh3d>, Without<Velocity>)>,
     settings: Res<Assets<Settings>>,
     settings_handle: Res<SettingsHandle>,
     time: Res<Time>
@@ -222,6 +232,49 @@ fn animate_camera_and_thought(
         dof.focal_distance = camera_distance;
     }
 }
+
+// fn spawn_additional_thoughts(
+//     commands: Commands,
+//     mut meshes: ResMut<Assets<Mesh>>,
+//     settings: Res<Assets<Settings>>,
+//     settings_handle: Res<SettingsHandle>,
+//     material_handle: Res<SphericalHarmonicsMaterialHandle>,
+// ) {
+//     let settings = settings.get(&settings_handle.0).unwrap();
+
+//     let mut rng = rand::rng();
+
+//     for i in 0..settings.num_additional_thoughts {
+
+//     }
+// }
+
+fn quit_after_time(
+    mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,
+    time : Res<Time>,
+    settings: Res<Assets<Settings>>,
+    settings_handle: Res<SettingsHandle>,
+    audio: Res<Audio>,
+    current_state: Res<State<AppState>>,
+    mut next_state: ResMut<NextState<AppState>>,
+) {
+    let settings = settings.get(&settings_handle.0).unwrap();
+
+    if time.elapsed_secs() > settings.end_time - 5.0 && *current_state.get() != AppState::Quitting {
+        audio.pause().fade_out(AudioTween::new(Duration::from_secs(5), Easing::Linear));
+        next_state.set(AppState::Quitting);
+    }
+
+    if time.elapsed_secs() > settings.end_time {
+         app_exit_events.send(AppExit::Success);
+    }
+}
+
+#[derive(Debug, Component, Clone, Copy, PartialEq, Default, Deref, DerefMut)]
+struct Velocity(Vec3);
+
+#[derive(Debug, Component, Clone, Copy, PartialEq, Default, Deref, DerefMut)]
+struct AngularVelocity(Vec3);
 
 #[derive(Resource)]
 struct SphericalHarmonicsMaterialHandle(Handle<ExtendedMaterial<StandardMaterial, SphericalHarmonicsMaterial>>);
@@ -266,7 +319,10 @@ struct Settings {
     thought_appear_time : f32,
     thought_initial_height : f32,
     f_stops: f32,
-    slowdown_rate: f32
+    slowdown_rate: f32,
+    additional_thoughts_time: f32,
+    num_additional_thoughts: usize,
+    end_time: f32,
 }
 
 impl MaterialExtension for SphericalHarmonicsMaterial {
@@ -283,5 +339,6 @@ impl MaterialExtension for SphericalHarmonicsMaterial {
 enum AppState {
     #[default]
     Building,
-    Running
+    Running,
+    Quitting,
 }

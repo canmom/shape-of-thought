@@ -2759,6 +2759,7 @@ dependencies = [
  "bevy",
  "bevy_common_assets",
  "bevy_kira_audio",
+ "kira",
  "serde",
 ]
 
