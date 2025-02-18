@@ -19,3 +19,4 @@ f_stops = 0.3
 slowdown_rate = 100.0
 additional_thoughts_time = 30.0
 num_additional_thoughts = 100
+screenshot_time = 53.85

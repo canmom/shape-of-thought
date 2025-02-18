@@ -32,7 +32,11 @@ fn main() {
         .add_plugins((
             DefaultPlugins.set(WindowPlugin {
                 primary_window: Some(Window {
-                    mode: WindowMode::Fullscreen(MonitorSelection::Primary),
+                    mode: if cfg!(target_os = "windows") {
+                        WindowMode::BorderlessFullscreen(MonitorSelection::Primary)
+                    } else {
+                        WindowMode::Fullscreen(MonitorSelection::Primary)
+                    },
                     ..default()
                 }),
                 ..default()
@@ -190,7 +194,11 @@ fn pulse(
     buffer.set_data(
         (0..NUM_COEFFICIENTS)
             .map(|i| {
-                let t = time.elapsed_secs();
+                let t = if cfg!(feature = "screenshot") {
+                    settings.screenshot_time
+                } else {
+                    time.elapsed_secs()
+                };
                 smoothstep(oscillators.start[i], oscillators.start[i] + settings.harmonic_spinup_time, t) * (oscillators.amplitudes[i] * ops::sin(settings.speed * oscillators.frequencies[i] * t + oscillators.phases[i])+oscillators.biases[i])
             })
             .collect::<Vec<f32>>()
@@ -207,13 +215,17 @@ fn animate_camera_and_thought(
 ) {
     let settings = settings.get(&settings_handle.0).unwrap();
 
-    let thought_height = (time.elapsed_secs() - settings.thought_appear_time) * settings.thought_speed + settings.thought_initial_height;
+    let t = if cfg!(feature = "screenshot") {
+        settings.screenshot_time
+    } else {
+        time.elapsed_secs()
+    };
+
+    let thought_height = (t - settings.thought_appear_time) * settings.thought_speed + settings.thought_initial_height;
 
     let thought_height = max(FloatOrd(thought_height), FloatOrd(0.)).0;
 
     let thought_height = settings.slowdown_rate * thought_height/(settings.slowdown_rate+thought_height);
-
-    let t = time.elapsed_secs();
 
     let camera_distance = settings.initial_camera_distance + (1. + thought_height);
 
@@ -323,6 +335,7 @@ struct Settings {
     additional_thoughts_time: f32,
     num_additional_thoughts: usize,
     end_time: f32,
+    screenshot_time: f32,
 }
 
 impl MaterialExtension for SphericalHarmonicsMaterial {

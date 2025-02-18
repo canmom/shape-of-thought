@@ -3,6 +3,9 @@ name = "shape-of-a-thought"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+screenshot = []
+
 [dependencies]
 bevy = { version = "0.15.2", features = ["file_watcher"] }
 bevy_common_assets = { version = "0.12.0", features = ["toml"] }
