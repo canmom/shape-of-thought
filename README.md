@@ -8,7 +8,7 @@ The main challenges were learning how to drive shaders in Bevy and pass data in 
 
 I did not put a lot of effort into sizecoding beyond [the basics](https://github.com/johnthagen/min-sized-rust) of stripping the binary and turning on a few size optimisations in the Rust compiler. It would likely be possible to get this binary much smaller with more knowledge.
 
-The brain is derived from an MRI scan provided by Ronja.
+The brain is derived from an MRI scan of Monchi, provided by Ronja.
 
 The music is 'Cute' by [ALPA](https://demozoo.org/sceners/59844/), CC BY-NC-SA 4.0.
 
